@@ -236,27 +236,26 @@
 }
 
 % declares a new environment
-% usage: \begin{cventry}[<title>]
-\DeclareDocumentEnvironment{cventry}{O{}}{%
-  \def\@title{}%
+% usage: \begin{cventry}[<name>]
+\DeclareDocumentEnvironment{cventry}{O{}O{}}{%
+  \csdef{@name}{#1}%
+  \def\@title{#2}%
   \def\@startdate{}%
   \def\@enddate{}%
   \def\@location{}%
   \def\@description{}%
-  \cvifdef{#1}{%
-    \def\@title{#1}%
-  }%
-  % redefine the commands
-  \renewcommand{\title}[1]{\def\@title{##1}}%
-  \renewcommand{\date}[2]{\def\@startdate{##1}\def\@enddate{##2}}%
-  \newcommand{\location}[1]{\def\@location{##1}}%
-  \renewcommand{\description}[1]{\def\@description{##1}}%
+  \csdef{name}##1{\csdef{@name}{##1}}%
+  \csdef{title}##1{\csdef{@title}{##1}}%
+  \csdef{date}##1##2{\csdef{@startdate}{##1}\csdef{@enddate}{##2}}%
+  \csdef{location}##1{\csdef{@location}{##1}}%
+  \csdef{description}##1{\csdef{@description}{##1}}%
 }{% TODO this still feels slightly hack-ish
   \stepcounter{list@cvsection@entries@counter}%
   \csdef{@index}{\listsize{cvsection@entries}}%
   \appendtolist{cvsection@entries}{\@index}%
-  \addtocounter{list@cvsection@entries@counter}{-1}
-  \global\cslet{cventry@\@index @title}{\@title}
+  \addtocounter{list@cvsection@entries@counter}{-1}%
+  \global\cslet{cventry@\@index @name}{\@name}%
+  \global\cslet{cventry@\@index @title}{\@title}%
   \global\cslet{cventry@\@index @startdate}{\@startdate}%
   \global\cslet{cventry@\@index @enddate}{\@enddate}%
   \global\cslet{cventry@\@index @location}{\@location}%
@@ -267,13 +266,15 @@
 % usage: \foreachcventry{<code>}
 % note:  allocates a few useful definitions before executing code:
 %        \index - index of the current entry
-%        \title - title of the entry
+%        \name - name of the entry (eg. employer/institution name)
+%        \title - title on the entry (eg. job title, degree earned)
 %        \startdate - start date in the entry
 %        \enddate - end date in the entry
-%        \location - location in the entry
+%        \location - location in the entry (eg. New York, London)
 %        \description - description of the entry
 \NewDocumentCommand{\foreachcventry}{m}{%
   \iteratelist{cvsection@entries}{index}{%
+    \csdef{name}{\csuse{cventry@\index @name}}%
     \csdef{title}{\csuse{cventry@\index @title}}%
     \csdef{startdate}{\csuse{cventry@\index @startdate}}%
     \csdef{enddate}{\csuse{cventry@\index @enddate}}%
