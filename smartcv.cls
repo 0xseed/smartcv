@@ -53,7 +53,12 @@
 % creates a new list
 % usage: \makenewlist{<list>}{<initial capacity>} (Optional)
 \NewDocumentCommand{\makenewlist}{mG{}}{%
-  \newcounter{list@#1@counter}%
+  \@ifundefined{c@list@#1@counter}{%
+    \newcounter{list@#1@counter}%
+    \newcounter{list@#1@loopcounter}%
+  }{%
+    \clearlist{#1}%
+  }%
   \cvifdef{#2}{%
     \setcounter{list@#1@counter}{#2}%
   }%
@@ -61,20 +66,20 @@
 
 % appends an item onto the list
 % usage: \appendtolist{<list>}{<item>}
-\NewDocumentCommand{\appendtolist}{mm}{%
+\newcommand*{\appendtolist}[2]{%
   \stepcounter{list@#1@counter}%
-  \csdef{list@#1@item\roman{list@#1@counter}}{#2}%
+  \csxdef{list@#1@item\roman{list@#1@counter}}{#2}%
 }
 
 % sets an item in the list
 % usage: \setlistitem{<list>}{<index>}{<item>}
-\NewDocumentCommand{\setlistitem}{mmm}{%
-  \csdef{list@#1@item\romannumeral#2}{#3}%
+\newcommand*{\setlistitem}[3]{%
+  \csxdef{list@#1@item\romannumeral#2}{#3}%
 }
 
 % gets an item from the list
 % usage: \getlistitem{<list>}{<index>}
-\NewDocumentCommand{\getlistitem}{mm}{%
+\newcommand*{\getlistitem}[2]{%
   \csuse{list@#1@item\romannumeral#2}%
 }
 
@@ -90,37 +95,41 @@
   \setcounter{list@#1@counter}{0}%
 }
 
+\NewDocumentCommand{\nextindex}{m}{%
+  \stepcounter{list@#1@counter}%
+  \listsize{#1}%
+  \addtocounter{list@#1@counter}{-1}%
+}
+
 % iterates over a list and applies the code
 % usage: \iteratelist{<list>}{<variable>}{<code>}
 % where: variable is the name of the loop variable, therefore it can
 %        be accessed in the code using \<variable>
 \NewDocumentCommand{\iteratelist}{mmm}{%
-  \setcounter{cvloop@var}{0}%
-  \csdef{#2}{\arabic{cvloop@var}}%
-  \forloop{cvloop@var}{1}{\value{cvloop@var} < \numexpr\listsize{#1}+1}{%
+  \setcounter{list@#1@loopcounter}{0}%
+  \csdef{#2}{\arabic{list@#1@loopcounter}}%
+  \forloop{list@#1@loopcounter}{1}{\value{list@#1@loopcounter} < \numexpr\listsize{#1}+1}{%
     #3%
   }%
 }
-
-\newcounter{cvloop@var}
 
 % --------------------------------------------------------------------
 % --- Definition of basic data in the package
 % ---
 
 % -- Default values
-\def\cvlastname{}
-\def\cvdate{\today}
-\def\cvcity{}
-\def\cvcountry{}
-\def\cvphone{}
-\def\cvmobile{}
-\def\cvfax{}
-\def\cvwebsite{}
-\def\cvextrainfo{}
-\def\cvlinkedin{}
-\def\cvtwitter{}
-\def\cvgithub{}
+\newcommand*{\cvlastname}{}
+\newcommand*{\cvdate}{\today}
+\newcommand*{\cvcity}{}
+\newcommand*{\cvcountry}{}
+\newcommand*{\cvphone}{}
+\newcommand*{\cvmobile}{}
+\newcommand*{\cvfax}{}
+\newcommand*{\cvwebsite}{}
+\newcommand*{\cvextrainfo}{}
+\newcommand*{\cvlinkedin}{}
+\newcommand*{\cvtwitter}{}
+\newcommand*{\cvgithub}{}
 
 % defines the colors used in the document
 \definecolor{cvcolor0}{rgb}{0,0,0} % default color (black by default)
@@ -129,7 +138,11 @@
 \definecolor{cvcolor3}{rgb}{0,0,0} % tertiary color
 
 \NewDocumentCommand{\cvifdef}{mmG{}}{%
-  \ifthenelse{\equal{#1}{}}{#3}{#2}%
+  \ifthenelse{\equal{#1}{}}{%
+    #3%
+  }{%
+    #2
+  }%
 }
 
 % --------------------------------------------------------------------
@@ -212,57 +225,90 @@
 
 \NewDocumentCommand{\makecvtitle}{}
 
+\NewDocumentCommand{\cvsection@pre@execute}{}
+
 % declares a new command, this command will be used to layout the 
 % document sections
 \NewDocumentCommand{\cvsection@execute}{}
+
+\NewDocumentCommand{\cventry@pre@execute}{}
+
+\NewDocumentCommand{\cventry@execute}{}
 
 % --------------------------------------------------------------------
 % --- Definition of new environments in the document
 % ---
 
-% preallocates a list for each section
-\makenewlist{cvsection@entries}%
+% preallocates a list for each subsection
+\makenewlist{cvsection@subsections}%
 
 % declares a new environment
 % usage: \begin{cvsection}[<title>]
 % note:  the environment executes cvsection@execute at the post-
 %        environment code
-\DeclareDocumentEnvironment{cvsection}{O{}}{%
+\DeclareDocumentEnvironment{cvsection}{O{}G{}}{%
   \def\cvsection@title{#1}%
-  \clearlist{cvsection@entries}%
+  \cvifdef{#2}{%
+    \def\cvsection@defaultstyle{#2}%
+  }{%
+    \def\cvsection@defaultstyle{default}%
+  }%
+  \clearlist{cvsection@subsections}%
+  \edef\@cvssname{}%
+  \appendtolist{cvsection@subsections}{\@cvssname}%
+  \makenewlist{\@cvssname @entries}%
+  \cvsection@pre@execute%
 }{%
-  \def\section{\cvsection@title}%
+  \def\cvsectiontitle{\cvsection@title}%
   \cvsection@execute%
 }
 
+\DeclareDocumentEnvironment{cvsubsection}{O{}}{%
+  \edef\@cvssname{#1}%
+  \appendtolist{cvsection@subsections}{\@cvssname}%
+  \makenewlist{\@cvssname @entries}%
+}{%
+}
+
 % declares a new environment
-% usage: \begin{cventry}[<name>]
-\DeclareDocumentEnvironment{cventry}{O{}O{}}{%
-  \csdef{@name}{#1}%
+% usage: \begin{cventry}[<name>][<title>]{<style>} (All Optional)
+\DeclareDocumentEnvironment{cventry}{O{}O{}G{}}{%
+  \cvifdef{#3}{%
+    \def\@style{#3}%
+  }{%
+    \def\@style{\cvsection@defaultstyle}%
+  }% default style (suitable for job experience description)
+  \def\@name{#1}%
   \def\@title{#2}%
   \def\@startdate{}%
   \def\@enddate{}%
   \def\@location{}%
-  \def\@description{}%
-  \csdef{name}##1{\csdef{@name}{##1}}%
-  \csdef{title}##1{\csdef{@title}{##1}}%
-  \csdef{date}##1##2{\csdef{@startdate}{##1}\csdef{@enddate}{##2}}%
-  \csdef{location}##1{\csdef{@location}{##1}}%
-  \csdef{description}##1{\csdef{@description}{##1}}%
-}{% TODO this still feels slightly hack-ish
-  \stepcounter{list@cvsection@entries@counter}%
-  \csdef{@index}{\listsize{cvsection@entries}}%
-  \appendtolist{cvsection@entries}{\@index}%
-  \addtocounter{list@cvsection@entries@counter}{-1}%
-  \global\cslet{cventry@\@index @name}{\@name}%
-  \global\cslet{cventry@\@index @title}{\@title}%
-  \global\cslet{cventry@\@index @startdate}{\@startdate}%
-  \global\cslet{cventry@\@index @enddate}{\@enddate}%
-  \global\cslet{cventry@\@index @location}{\@location}%
-  \global\cslet{cventry@\@index @description}{\@description}%
+  \def\@summary{}%
+  \def\date##1##2{\def\@startdate{##1}\def\@enddate{##2}}%
+  \def\location##1{\def\@location{##1}}%
+  \def\summary##1{\def\@summary{##1}}%
+  \def\style##1{\def\@style{##1}}%
+}{%
+  \appendtolist{\@cvssname @entries}{\nextindex{\@cvssname @entries}}%
+  \csdef{@index}{\listsize{\@cvssname @entries}}%
+  %
+  \global\cslet{cventry@\@cvssname @\@index @style}{\@style}%
+  \global\cslet{cventry@\@cvssname @\@index @name}{\@name}%
+  \global\cslet{cventry@\@cvssname @\@index @title}{\@title}%
+  \global\cslet{cventry@\@cvssname @\@index @startdate}{\@startdate}%
+  \global\cslet{cventry@\@cvssname @\@index @enddate}{\@enddate}%
+  \global\cslet{cventry@\@cvssname @\@index @location}{\@location}%
+  \global\cslet{cventry@\@cvssname @\@index @summary}{\@summary}%
 }
 
-% convenient command, for use inside cvsection@execute only
+\NewDocumentCommand{\foreachcvsubsection}{m}{%
+  \iteratelist{cvsection@subsections}{ssindex}{%
+    \edef\cvsubsection{\getlistitem{cvsection@subsections}{\ssindex}}%
+    #1%
+  }%
+}
+
+% convenient command, for use inside \foreachcvsubsection only
 % usage: \foreachcventry{<code>}
 % note:  allocates a few useful definitions before executing code:
 %        \index - index of the current entry
@@ -273,14 +319,24 @@
 %        \location - location in the entry (eg. New York, London)
 %        \description - description of the entry
 \NewDocumentCommand{\foreachcventry}{m}{%
-  \iteratelist{cvsection@entries}{index}{%
-    \csdef{name}{\csuse{cventry@\index @name}}%
-    \csdef{title}{\csuse{cventry@\index @title}}%
-    \csdef{startdate}{\csuse{cventry@\index @startdate}}%
-    \csdef{enddate}{\csuse{cventry@\index @enddate}}%
-    \csdef{location}{\csuse{cventry@\index @location}}%
-    \csdef{description}{\csuse{cventry@\index @description}}%
+  \iteratelist{\cvsubsection @entries}{index}{%
+    \def\style{\csuse{cventry@\cvsubsection @\index @style}}%
+    \def\name{\csuse{cventry@\cvsubsection @\index @name}}%
+    \def\title{\csuse{cventry@\cvsubsection @\index @title}}%
+    \def\startdate{\csuse{cventry@\cvsubsection @\index @startdate}}%
+    \def\enddate{\csuse{cventry@\cvsubsection @\index @enddate}}%
+    \def\location{\csuse{cventry@\cvsubsection @\index @location}}%
+    \def\summary{\csuse{cventry@\cvsubsection @\index @summary}}%
     #1%
   }%
 }
+
+\NewDocumentCommand{\cvitem}{O{}G{}}{% TODO fix this hack
+  \appendtolist{\@cvssname @entries}{\nextindex{\@cvssname @entries}}%
+  \csdef{@index}{\listsize{\@cvssname @entries}}%
+  %
+  \global\csdef{cventry@\@cvssname @\@index @name}{#1}%
+  \global\csdef{cventry@\@cvssname @\@index @summary}{#2}%
+  \global\csdef{cventry@\@cvssname @\@index @style}{short}%
+}%
 
