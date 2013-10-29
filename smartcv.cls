@@ -9,10 +9,12 @@
 % --- Identification
 % ---
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{smartcv}[2013/10/17 v0.0 smart curriculum vitae and cover letter document class]
+\ProvidesClass{smartcv}[2013/10/17 v0.0 smart curriculum vitae document class]
 
-% class options
-%\DeclareOption{a4paper}{\setlength\paperheight{297mm}}
+% --------------------------------------------------------------------
+% --- Class Options
+% ---
+% Declares the class options for the document
 
 \ProcessOptions \relax
 
@@ -35,13 +37,18 @@
 % allows for the use of \isempty
 \RequirePackage{xifthen}
 
+% use the coloring package
+\RequirePackage{xcolor}
+
 % allows the definition of complex datastructures (maps and lists)
 \RequirePackage{etoolbox}
 
 % allows the construction of for loops
 \RequirePackage{forloop}
 
+% allows the creation of hyperlinks on the document
 \RequirePackage{hyperref}
+% hypersetup appears at the bottom of this document
 
 % --------------------------------------------------------------------
 % --- Definition data structures which will be used in the package
@@ -118,6 +125,7 @@
 % ---
 
 % -- Default values
+\newcommand*{\cvtitle}{}
 \newcommand*{\cvlastname}{}
 \newcommand*{\cvdate}{\today}
 \newcommand*{\cvcity}{}
@@ -222,6 +230,8 @@
 % --------------------------------------------------------------------
 % --- Default document format
 % ---
+
+\pagestyle{empty}
 
 \NewDocumentCommand{\makecvtitle}{}
 
@@ -339,4 +349,10 @@
   \global\csdef{cventry@\@cvssname @\@index @summary}{#2}%
   \global\csdef{cventry@\@cvssname @\@index @style}{short}%
 }%
+
+% setup the hyperref package
+\hypersetup{
+  hidelinks,
+  pdftitle    = {\cvtitle}
+}
 
