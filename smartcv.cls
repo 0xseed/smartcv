@@ -16,39 +16,172 @@
 % ---
 % Declares the class options for the document
 
-\ProcessOptions \relax
+% --
+% -- Paper Size Options
+% paper size option (taken from article.cls)
+\DeclareOption{a4paper}{%
+  \setlength\paperheight  {297mm}%
+  \setlength\paperwidth   {210mm}%
+}
+\DeclareOption{a5paper}{%
+  \setlength\paperheight  {210mm}%
+  \setlength\paperwidth   {148mm}%
+}
+\DeclareOption{b5paper}{%
+  \setlength\paperheight  {250mm}%
+  \setlength\paperwidth   {176mm}%
+}
+\DeclareOption{letterpaper}{%
+  \setlength\paperheight  {11in}%
+  \setlength\paperwidth   {8.5in}%
+}
+\DeclareOption{legalpaper}{%
+  \setlength\paperheight  {14in}%
+  \setlength\paperwidth   {8.5in}%
+}
+\DeclareOption{executivepaper}{%
+  \setlength\paperheight  {10.5in}%
+  \setlength\paperwidth   {7.25in}%
+}
+\DeclareOption{landscape}{%
+  \setlength\@tempdima    {\paperheight}%
+  \setlength\paperheight  {\paperwidth}%
+  \setlength\paperwidth   {\@tempdima}%
+}
 
-\LoadClass{article}
+% --
+% -- Font Sizes
+% font size options (taken from article.cls)
+\newcommand\@ptsize{}
+\DeclareOption{10pt}{\renewcommand\@ptsize{0}}
+\DeclareOption{11pt}{\renewcommand\@ptsize{1}}
+\DeclareOption{12pt}{\renewcommand\@ptsize{2}}
 
+% --
+% -- Draft and Final Option
+% draft/final declaration
+\DeclareOption{draft}{\setlength\overfullrule{5pt}}
+\DeclareOption{final}{\setlength\overfullrule{0pt}}
+
+% default options
+\ExecuteOptions{a4paper,11pt,final}
+
+% process user specified options
+\ProcessOptions
+\input{size1\@ptsize.clo}
+\setlength\lineskip{1\p@}
+\setlength\normallineskip{1\p@}
+\renewcommand\baselinestretch{}
+\setlength\parskip{0\p@ \@plus \p@}
+
+% spacing penalties (from article.cls)
+\@lowpenalty   51
+\@medpenalty  151
+\@highpenalty 301
+\setcounter{topnumber}{2}
+\renewcommand\topfraction{.7}
+\setcounter{bottomnumber}{1}
+\renewcommand\bottomfraction{.3}
+\setcounter{totalnumber}{3}
+\renewcommand\textfraction{.2}
+\renewcommand\floatpagefraction{.5}
+\setcounter{dbltopnumber}{2}
+\renewcommand\dbltopfraction{.7}
+\renewcommand\dblfloatpagefraction{.5}
+
+% indents and margins (from article.cls)
+\setlength\leftmargini    {2.5em}
+\setlength\leftmarginii   {2.2em}
+\setlength\leftmarginiii  {1.87em}
+\setlength\leftmarginiv   {1.7em}
+\setlength\leftmarginv    {1em}
+\setlength\leftmarginvi   {1em}
+\setlength\labelsep       {0.5em}
+\setlength\labelwidth     {\leftmargini}
+\addtolength\labelwidth   {-\labelsep}
+\@beginparpenalty -\@lowpenalty
+\@endparpenalty   -\@lowpenalty
+\@itempenalty     -\@lowpenalty
+\renewcommand\theenumi{\@arabic\c@enumi}
+\renewcommand\theenumii{\@alph\c@enumii}
+\renewcommand\theenumiii{\@roman\c@enumiii}
+\renewcommand\theenumiv{\@Alph\c@enumiv}
+\newcommand\labelenumi{\theenumi.}
+\newcommand\labelenumii{(\theenumii)}
+\newcommand\labelenumiii{\theenumiii.}
+\newcommand\labelenumiv{\theenumiv.}
+\renewcommand\p@enumii{\theenumi}
+\renewcommand\p@enumiii{\theenumi(\theenumii)}
+\renewcommand\p@enumiv{\p@enumiii\theenumiii}
+\newcommand\labelitemi{\textbullet}
+\newcommand\labelitemii{\normalfont\bfseries \textendash}
+\newcommand\labelitemiii{\textasteriskcentered}
+\newcommand\labelitemiv{\textperiodcentered}
+\newenvironment{description}
+               {\list{}{\labelwidth\z@ \itemindent-\leftmargin
+                        \let\makelabel\descriptionlabel}}
+               {\endlist}
+\newcommand*\descriptionlabel[1]{\hspace\labelsep
+                                \normalfont\bfseries #1}
+                                
 % --------------------------------------------------------------------
 % --- 3rd Party Packages
 % ---
 % Loads 3rd party packages used by this class
 
+% --
+% -- geometry Package
 % set custom page sizes
 \RequirePackage[left=1in,right=1in,top=1in,bottom=1in]{geometry}
 
+% --
+% -- fancyhdr Package
 % use the fancyhdr package for custom headers and footers
 \RequirePackage{fancyhdr}
 
+% --
+% -- xparse Package
 % required for the \NewDocumentCommand
 \RequirePackage{xparse}
 
+% --
+% -- xifthen Package
 % allows for the use of \isempty
 \RequirePackage{xifthen}
 
+% --
+% -- xcolor Package
 % use the coloring package
 \RequirePackage{xcolor}
 
+% --
+% -- etoolbox Package
 % allows the definition of complex datastructures (maps and lists)
 \RequirePackage{etoolbox}
 
+% --
+% -- forloop Package
 % allows the construction of for loops
 \RequirePackage{forloop}
 
+% --
+% -- enumitem Package
+% allows customization of the list environments
+\RequirePackage{enumitem}
+\setlist{topsep=-1em,parsep=0em,partopsep=0em,itemsep=0em}
+
+% --
+% -- hyperref Package
 % allows the creation of hyperlinks on the document
-\RequirePackage{hyperref}
-% hypersetup appears at the bottom of this document
+\AtEndOfPackage{
+  \RequirePackage{hyperref}
+
+  % setup the hyperref package
+  \hypersetup{
+    hidelinks,
+    pdftitle    = {\cvtitle}
+  }
+}
 
 % --------------------------------------------------------------------
 % --- Definition data structures which will be used in the package
@@ -159,7 +292,7 @@
 
 % defines the name on the document
 % usage: \cvname{<first name>}{<last name>}
-\newcommand*{\setcvname}[2]{\def\cvfirstname{#1}\def\cvlastname{#2}}
+\newcommand*{\setcvname}[1]{\def\cvname{#1}}
 
 % defines the title of the document
 % usage: \cvtitle{<title>}
@@ -213,8 +346,6 @@
 % --- Convenient commands
 % ---
 
-\newcommand*{\cvfullname}{\cvfirstname{} \cvlastname{}}
-
 \newcommand*{\cvifhasanyphone}[1]{\cvifdef{\cvphone\cvmobile\cvfax}{#1}}
 
 \newcommand*{\cvemaillink}{\cvifdef{\cvemail}{\href{mailto: \cvemail}{\cvemail}}}
@@ -231,9 +362,15 @@
 % --- Default document format
 % ---
 
+\parindent=0pt
+
+\raggedbottom
+
 \pagestyle{empty}
 
-\NewDocumentCommand{\makecvtitle}{}
+\pagenumbering{arabic}
+
+\NewDocumentCommand{\maketitle}{}
 
 \NewDocumentCommand{\cvsection@pre@execute}{}
 
@@ -290,11 +427,10 @@
   }% default style (suitable for job experience description)
   \def\@name{#1}%
   \def\@title{#2}%
-  \def\@startdate{}%
-  \def\@enddate{}%
+  \def\@date{}%
   \def\@location{}%
   \def\@summary{}%
-  \def\date##1##2{\def\@startdate{##1}\def\@enddate{##2}}%
+  \def\date##1{\def\@date{##1}}%
   \def\location##1{\def\@location{##1}}%
   \def\summary##1{\def\@summary{##1}}%
   \def\style##1{\def\@style{##1}}%
@@ -305,8 +441,7 @@
   \global\cslet{cventry@\@cvssname @\@index @style}{\@style}%
   \global\cslet{cventry@\@cvssname @\@index @name}{\@name}%
   \global\cslet{cventry@\@cvssname @\@index @title}{\@title}%
-  \global\cslet{cventry@\@cvssname @\@index @startdate}{\@startdate}%
-  \global\cslet{cventry@\@cvssname @\@index @enddate}{\@enddate}%
+  \global\cslet{cventry@\@cvssname @\@index @date}{\@date}%
   \global\cslet{cventry@\@cvssname @\@index @location}{\@location}%
   \global\cslet{cventry@\@cvssname @\@index @summary}{\@summary}%
 }
@@ -324,8 +459,7 @@
 %        \index - index of the current entry
 %        \name - name of the entry (eg. employer/institution name)
 %        \title - title on the entry (eg. job title, degree earned)
-%        \startdate - start date in the entry
-%        \enddate - end date in the entry
+%        \date - date in the entry
 %        \location - location in the entry (eg. New York, London)
 %        \description - description of the entry
 \NewDocumentCommand{\foreachcventry}{m}{%
@@ -333,8 +467,7 @@
     \def\style{\csuse{cventry@\cvsubsection @\index @style}}%
     \def\name{\csuse{cventry@\cvsubsection @\index @name}}%
     \def\title{\csuse{cventry@\cvsubsection @\index @title}}%
-    \def\startdate{\csuse{cventry@\cvsubsection @\index @startdate}}%
-    \def\enddate{\csuse{cventry@\cvsubsection @\index @enddate}}%
+    \def\date{\csuse{cventry@\cvsubsection @\index @date}}%
     \def\location{\csuse{cventry@\cvsubsection @\index @location}}%
     \def\summary{\csuse{cventry@\cvsubsection @\index @summary}}%
     #1%
@@ -349,10 +482,4 @@
   \global\csdef{cventry@\@cvssname @\@index @summary}{#2}%
   \global\csdef{cventry@\@cvssname @\@index @style}{short}%
 }%
-
-% setup the hyperref package
-\hypersetup{
-  hidelinks,
-  pdftitle    = {\cvtitle}
-}
 
