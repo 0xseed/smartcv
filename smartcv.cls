@@ -168,7 +168,12 @@
 % -- enumitem Package
 % allows customization of the list environments
 \RequirePackage{enumitem}
-\setlist{topsep=-1em,parsep=0em,partopsep=0em,itemsep=0em}
+\setlist{topsep=0em,parsep=0em,partopsep=0em,itemsep=0em}
+
+% --
+% -- environ Package
+% allows the use of NewEnviron which captures the body in a macro
+\RequirePackage{environ}
 
 % --
 % -- hyperref Package
@@ -429,11 +434,10 @@
   \def\@title{#2}%
   \def\@date{}%
   \def\@location{}%
-  \def\@summary{}%
   \def\date##1{\def\@date{##1}}%
   \def\location##1{\def\@location{##1}}%
-  \def\summary##1{\def\@summary{##1}}%
   \def\style##1{\def\@style{##1}}%
+  \csgdef{@tmpbody}{}%
 }{%
   \appendtolist{\@cvssname @entries}{\nextindex{\@cvssname @entries}}%
   \csdef{@index}{\listsize{\@cvssname @entries}}%
@@ -443,8 +447,17 @@
   \global\cslet{cventry@\@cvssname @\@index @title}{\@title}%
   \global\cslet{cventry@\@cvssname @\@index @date}{\@date}%
   \global\cslet{cventry@\@cvssname @\@index @location}{\@location}%
-  \global\cslet{cventry@\@cvssname @\@index @summary}{\@summary}%
+  \global\cslet{cventry@\@cvssname @\@index @summary}{\@tmpbody}%
 }
+
+\newenvironment{summary}{%
+  \def\@wrap##1{\global\def\@tmpbody{%
+    \par\addvspace{0em}%
+    ##1%
+    \par\addvspace{0em}}%
+  }%
+  \collect@body\@wrap%
+}{}
 
 \NewDocumentCommand{\foreachcvsubsection}{m}{%
   \iteratelist{cvsection@subsections}{ssindex}{%
