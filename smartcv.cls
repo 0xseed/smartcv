@@ -171,11 +171,6 @@
 \setlist{topsep=0em,parsep=0em,partopsep=0em,itemsep=0em}
 
 % --
-% -- environ Package
-% allows the use of NewEnviron which captures the body in a macro
-\RequirePackage{environ}
-
-% --
 % -- hyperref Package
 % allows the creation of hyperlinks on the document
 \AtEndOfPackage{
