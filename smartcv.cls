@@ -171,6 +171,11 @@
 \setlist{topsep=0em,parsep=0em,partopsep=0em,itemsep=0em}
 
 % --
+% -- amsmath Package
+% allows the use of the \collect@body macro
+\RequirePackage{amsmath}
+
+% --
 % -- hyperref Package
 % allows the creation of hyperlinks on the document
 \AtEndOfPackage{
@@ -418,19 +423,18 @@
 }
 
 % declares a new environment
-% usage: \begin{cventry}[<name>][<title>]{<style>} (All Optional)
-\DeclareDocumentEnvironment{cventry}{O{}O{}G{}}{%
-  \cvifdef{#3}{%
-    \def\@style{#3}%
+% usage: \begin{cventry}[<heading>]{<style>} (All Optional)
+\DeclareDocumentEnvironment{cventry}{O{}G{}}{%
+  \cvifdef{#2}{%
+    \def\@style{#2}%
   }{%
     \def\@style{\cvsection@defaultstyle}%
   }% default style (suitable for job experience description)
-  \def\@name{#1}%
-  \def\@title{#2}%
+  \def\@heading{#1}%
+  \def\@subheading{}%
   \def\@date{}%
-  \def\@location{}%
+  \def\subheading##1{\def\@subheading{##1}}%
   \def\date##1{\def\@date{##1}}%
-  \def\location##1{\def\@location{##1}}%
   \def\style##1{\def\@style{##1}}%
   \csgdef{@tmpbody}{}%
 }{%
@@ -438,10 +442,9 @@
   \csdef{@index}{\listsize{\@cvssname @entries}}%
   %
   \global\cslet{cventry@\@cvssname @\@index @style}{\@style}%
-  \global\cslet{cventry@\@cvssname @\@index @name}{\@name}%
-  \global\cslet{cventry@\@cvssname @\@index @title}{\@title}%
+  \global\cslet{cventry@\@cvssname @\@index @heading}{\@heading}%
+  \global\cslet{cventry@\@cvssname @\@index @subheading}{\@subheading}%
   \global\cslet{cventry@\@cvssname @\@index @date}{\@date}%
-  \global\cslet{cventry@\@cvssname @\@index @location}{\@location}%
   \global\cslet{cventry@\@cvssname @\@index @summary}{\@tmpbody}%
 }
 
@@ -473,10 +476,9 @@
 \NewDocumentCommand{\foreachcventry}{m}{%
   \iteratelist{\cvsubsection @entries}{index}{%
     \def\style{\csuse{cventry@\cvsubsection @\index @style}}%
-    \def\name{\csuse{cventry@\cvsubsection @\index @name}}%
-    \def\title{\csuse{cventry@\cvsubsection @\index @title}}%
+    \def\heading{\csuse{cventry@\cvsubsection @\index @heading}}%
+    \def\subheading{\csuse{cventry@\cvsubsection @\index @subheading}}%
     \def\date{\csuse{cventry@\cvsubsection @\index @date}}%
-    \def\location{\csuse{cventry@\cvsubsection @\index @location}}%
     \def\summary{\csuse{cventry@\cvsubsection @\index @summary}}%
     #1%
   }%
@@ -486,7 +488,7 @@
   \appendtolist{\@cvssname @entries}{\nextindex{\@cvssname @entries}}%
   \csdef{@index}{\listsize{\@cvssname @entries}}%
   %
-  \global\csdef{cventry@\@cvssname @\@index @name}{#1}%
+  \global\csdef{cventry@\@cvssname @\@index @heading}{#1}%
   \global\csdef{cventry@\@cvssname @\@index @summary}{#2}%
   \global\csdef{cventry@\@cvssname @\@index @style}{short}%
 }%
