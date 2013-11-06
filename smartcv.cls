@@ -130,11 +130,6 @@
 % Loads 3rd party packages used by this class
 
 % --
-% -- geometry Package
-% set custom page sizes
-\RequirePackage[left=1in,right=1in,top=1in,bottom=1in]{geometry}
-
-% --
 % -- fancyhdr Package
 % use the fancyhdr package for custom headers and footers
 \RequirePackage{fancyhdr}
@@ -367,9 +362,12 @@
 % --- Default document format
 % ---
 
+\newcommand{\cvsummarytopsep}{0pt}
+\newcommand{\cvsummarybottomsep}{0pt}
+
 \parindent=0pt
 
-\raggedbottom
+%\raggedbottom
 
 \pagestyle{empty}
 
@@ -450,9 +448,9 @@
 
 \newenvironment{summary}{%
   \def\@wrap##1{\global\def\@tmpbody{%
-    \par\addvspace{0em}%
+    \par\addvspace{\cvsummarytopsep}%
     ##1%
-    \par\addvspace{0em}}%
+    \par\addvspace{\cvsummarybottomsep}}%
   }%
   \collect@body\@wrap%
 }{}
