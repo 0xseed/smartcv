@@ -362,9 +362,6 @@
 % --- Default document format
 % ---
 
-\newcommand{\cvsummarytopsep}{0pt}
-\newcommand{\cvsummarybottomsep}{0pt}
-
 \parindent=0pt
 
 %\raggedbottom
@@ -413,6 +410,8 @@
   \cvsection@execute%
 }
 
+% starts a new subsection in the section
+% usage: \begin{cvsubsection}{<name>}<code>\end{cvsubsection}
 \DeclareDocumentEnvironment{cvsubsection}{O{}}{%
   \edef\@cvssname{#1}%
   \appendtolist{cvsection@subsections}{\@cvssname}%
@@ -446,15 +445,17 @@
   \global\cslet{cventry@\@cvssname @\@index @summary}{\@tmpbody}%
 }
 
+% an environment to summarize a cv entry. Can contain more complex elements
+% usage: \begin{summary}<code>\end{summary}
 \newenvironment{summary}{%
   \def\@wrap##1{\global\def\@tmpbody{%
-    \par\addvspace{\cvsummarytopsep}%
     ##1%
-    \par\addvspace{\cvsummarybottomsep}}%
   }%
   \collect@body\@wrap%
 }{}
 
+% a convenient command to loop over each subsection contained in the section.
+% usage: \foreachsubsection{<code>}
 \NewDocumentCommand{\foreachcvsubsection}{m}{%
   \iteratelist{cvsection@subsections}{ssindex}{%
     \edef\cvsubsection{\getlistitem{cvsection@subsections}{\ssindex}}%
@@ -467,10 +468,10 @@
 % note:  allocates a few useful definitions before executing code:
 %        \index - index of the current entry
 %        \name - name of the entry (eg. employer/institution name)
-%        \title - title on the entry (eg. job title, degree earned)
+%        \heading - the heading in the entry
 %        \date - date in the entry
-%        \location - location in the entry (eg. New York, London)
-%        \description - description of the entry
+%        \subheading - the subheading in the entry
+%        \summary - the summary of the entry
 \NewDocumentCommand{\foreachcventry}{m}{%
   \iteratelist{\cvsubsection @entries}{index}{%
     \def\style{\csuse{cventry@\cvsubsection @\index @style}}%
@@ -482,12 +483,17 @@
   }%
 }
 
+% a convenient command for creating short cv entries
+% usage: \cvitem[<heading>]{<summary>}
+% note: defaults all other fields to empty
 \NewDocumentCommand{\cvitem}{O{}G{}}{% TODO fix this hack
   \appendtolist{\@cvssname @entries}{\nextindex{\@cvssname @entries}}%
   \csdef{@index}{\listsize{\@cvssname @entries}}%
   %
   \global\csdef{cventry@\@cvssname @\@index @heading}{#1}%
   \global\csdef{cventry@\@cvssname @\@index @summary}{#2}%
-  \global\csdef{cventry@\@cvssname @\@index @style}{short}%
+  \global\csdef{cventry@\@cvssname @\@index @subheading}{}%
+  \global\csdef{cventry@\@cvssname @\@index @date}{}%
+  \global\csdef{cventry@\@cvssname @\@index @style}{\cvsection@defaultstyle}%
 }%
 
